@@ -23,7 +23,7 @@ while(True):
 - Thread #2
 while(True):
 - if(talking):
-* test
+- * test
 - else:
 * test
 
