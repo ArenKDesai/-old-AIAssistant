@@ -17,4 +17,13 @@ while(True):
    - else:
     - convo = ""
 
-## 
+## Graphics
+- Thread #2
+while(True):
+- if(not animation):
+ - 
+
+## Brain
+
+## Global Variables
+animation (boolean)
