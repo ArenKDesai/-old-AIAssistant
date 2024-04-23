@@ -23,12 +23,19 @@ while(True):
 - Thread #2
 while(True):
 - if(talking):
-- * test
-- else:
-* test
+- * detect people with YOLO
+- * if(people):
+- * - choose one person randomly
+- * - get that person's bounding box
+- * - convert coordinates to pixels in resolution, round
+- * - send Pluto to center of the coordinates X axis
+- elif(not emoting):
+
+## Pluto
+class Pluto:
+- attributes: position, talking, emoting
+- methods:
+- * move
+- * think
 
 ## Brain
-
-## Global Variables
-animation (boolean)
-talking (boolean)
