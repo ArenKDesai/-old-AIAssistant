@@ -1,6 +1,8 @@
 # AIAssistant
 
-## Plan
+## TODO
+- Add idle animations for more life
+- Add ability to think
 
 ## Audio
 - Thread #1
@@ -29,13 +31,9 @@ while(True):
 - * - get that person's bounding box
 - * - convert coordinates to pixels in resolution, round
 - * - send Pluto to center of the coordinates X axis
-- elif(not emoting):
 
 ## Pluto
 class Pluto:
 - attributes: position, talking, emoting
 - methods:
 - * move
-- * think
-
-## Brain
