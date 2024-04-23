@@ -2,7 +2,7 @@ import pyaudio
 import wave
 import threading
 import whisper
-from ai_brain import process_convo
+from convo_processing import process_convo
 
 def record_audio(model, duration=3, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
     p = pyaudio.PyAudio()
@@ -23,7 +23,7 @@ def record_audio(model, duration=3, rate=44100, chunk=1024, channels=2, format=p
     stream.close()
     p.terminate()
 
-    wf = wave.open("3sec.wav", 'wb')
+    wf = wave.open("recording.wav", 'wb')
     wf.setnchannels(channels)
     wf.setsampwidth(p.get_sample_size(format))
     wf.setframerate(rate)
@@ -36,7 +36,9 @@ def main_audio_loop():
 
     while True:
         record_audio(model)
-        convo = whisper.listen("3sec.wav").lower()
+        convo = whisper.listen("recording.wav").lower()
         if 'pluto' in convo:
             while convo:
                 tag = process_convo(convo)
+                response = "" # TODO: get gpt's response
+                # TODO: 
