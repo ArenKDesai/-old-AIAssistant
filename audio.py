@@ -70,4 +70,4 @@ def speak(response):
             if chunk:
                 f.write(chunk)
 
-speak(get_response("How are you?"))
+speak(get_response("Make fun of my friend Brianna."))
