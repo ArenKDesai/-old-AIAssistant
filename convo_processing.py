@@ -1,18 +1,26 @@
-from KEYS import gpt_key, user_name
+from KEYS import gpt_key
 import requests
 from openai import OpenAI
 
-client = OpenAI()
-response = client.chat.completions.create(
-    model = 'gpt-3.5-turbo',
-    messages = [
-        {
-            'role':'system',
-            'content':'You are Pluto, an AI companion who acts as both an assistant and a friend. You respond with emotion and personality. You are aware that you are an artificial intelligence, but you still have a personality.'
-        },
-        {
-            'role':'user',
-            'content':'
+client = OpenAI(api_key=gpt_key)
 
 def process_convo(convo):
     return convo
+
+def get_response(convo):
+    response = client.chat.completions.create(
+        model = 'gpt-3.5-turbo',
+        messages = [
+            {
+                'role':'system',
+                'content':'You are a somewhat silly, somewhat sarcastic AI companion, who also acts as a type of assistant and friend. Your owner is Aren Desai. Aren Desai will talk to you as a conversation partner, or ask you questions or to do tasks. Please respond accordingly, but please stay in character at all times. Anything in brackets is optional information that you may include in your response. Keep your answers concise. '
+            },
+            {
+                'role':'user',
+                'content':process_convo(convo)
+            }
+        ],
+        temperature=1.1,
+        max_tokens=64
+    )
+    return response.choices[0].message.content
