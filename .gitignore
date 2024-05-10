@@ -1,2 +1,4 @@
 KEYS.py
 output.mp3
+__pycache__
+.venv
