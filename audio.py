@@ -1,12 +1,13 @@
 import pyaudio
-# import wave
-# import threading
-# import whisper
-from convo_processing import get_response
+import wave
+import threading
+import whisper
+from convo_processing import get_response, process_convo
 import requests
 from KEYS import elabs_api, voice_api
 
 def record_audio(model, duration=3, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
+    print("Recoding audio...")
     p = pyaudio.PyAudio()
 
     stream = p.open(format=format,
@@ -24,6 +25,7 @@ def record_audio(model, duration=3, rate=44100, chunk=1024, channels=2, format=p
     stream.stop_stream()
     stream.close()
     p.terminate()
+    print("Saving audio...")
 
     wf = wave.open("recording.wav", 'wb')
     wf.setnchannels(channels)
@@ -31,6 +33,7 @@ def record_audio(model, duration=3, rate=44100, chunk=1024, channels=2, format=p
     wf.setframerate(rate)
     wf.writeframes(b''.join(frames))
     wf.close()
+    print("record_audio complete.\n")
 
 
 def main_audio_loop():
@@ -40,10 +43,11 @@ def main_audio_loop():
         record_audio(model)
         convo = whisper.listen("recording.wav").lower()
         if 'pluto' in convo:
+            print("Name heard!")
             while convo:
                 tag = process_convo(convo)
-                response = "" # TODO: get gpt's response
-                # TODO: 
+                response = get_response(tag) # TODO: get gpt's response
+                speak(response)
 
 def speak(response):
     CHUNK_SIZE = 1024

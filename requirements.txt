@@ -1,2 +1,5 @@
-python3-pyaudio
-python3 -m pip install SpeechRecognition[whisper-api]
+pyaudio
+SpeechRecognition[whisper-api]
+wave
+threading
+requests
