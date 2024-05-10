@@ -1,17 +1,19 @@
-import pygame
+# import pygame
+from audio import main_audio_loop
 
 if __name__ == "__main__":
-    pygame.init()
-    FPS = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((1440, 900), pygame.FULLSCREEN)
-    DISPLAYSURF.fill((0, 0, 0))
+    # pygame.init()
+    # FPS = pygame.time.Clock()
+    # DISPLAYSURF = pygame.display.set_mode((1440, 900), pygame.FULLSCREEN)
+    # DISPLAYSURF.fill((0, 0, 0))
     
-    # TODO: set up basics for the model
+    # # TODO: set up basics for the model
 
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-        pygame.display.update()
-        FPS.tick(60)
+    # while True:
+    #     for event in pygame.event.get():
+    #         if event.type == pygame.QUIT:
+    #             pygame.quit()
+    #             quit()
+    #     pygame.display.update()
+    #     FPS.tick(60)
+    main_audio_loop()

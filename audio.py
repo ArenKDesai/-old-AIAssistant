@@ -5,11 +5,14 @@ import whisper
 from convo_processing import get_response, process_convo
 import requests
 from KEYS import elabs_api, voice_api
+import pygame
+import os
 
-def record_audio(model, duration=3, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
-    print("Recoding audio...")
+pygame.init() # TODO: move this to main.py
+
+def record_audio(model, duration=10, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
     p = pyaudio.PyAudio()
-
+    print("Recoding audio...")
     stream = p.open(format=format,
                     channels=channels,
                     rate=rate,
@@ -41,15 +44,17 @@ def main_audio_loop():
 
     while True:
         record_audio(model)
-        convo = whisper.listen("recording.wav").lower()
+        convo = model.transcribe("recording.wav", verbose=False, language='en', fp16=False)['text'].lower()
+        print(convo)
         if 'pluto' in convo:
             print("Name heard!")
-            while convo:
-                tag = process_convo(convo)
-                response = get_response(tag) # TODO: get gpt's response
-                speak(response)
+            # while convo:
+            tag = process_convo(convo)
+            response = get_response(tag) 
+            speak(response) #TODO: update this to allow conversations
 
 def speak(response):
+    print("Speaking...")
     CHUNK_SIZE = 1024
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_api}"
 
@@ -73,5 +78,4 @@ def speak(response):
         for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
             if chunk:
                 f.write(chunk)
-
-speak(get_response("I'm bored"))
+    pygame.mixer.Sound('output.mp3').play()

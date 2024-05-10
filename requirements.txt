@@ -3,3 +3,5 @@ SpeechRecognition[whisper-api]
 wave
 threading
 requests
+pygame
+whisper
