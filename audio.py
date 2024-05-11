@@ -55,8 +55,7 @@ def main_audio_loop():
         if 'beans' in convo or 'beams' in convo or talking == True:
             print("Name heard!")
             if talking:
-                tag = process_convo(convo)
-                response = get_response(tag) 
+                response = get_response(convo) 
                 speak(response) 
             else:
                 whatsup = pygame.mixer.Sound("whatsup.mp3")
