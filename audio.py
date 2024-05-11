@@ -38,7 +38,7 @@ def record_audio(model, duration=3, rate=44100, chunk=1024, channels=2, format=p
     wf.setframerate(rate)
     wf.writeframes(b''.join(frames))
     wf.close()
-    print("record_audio complete.\n")
+    print("Recording complete.\n")
 
 
 def main_audio_loop():
@@ -52,7 +52,7 @@ def main_audio_loop():
             record_audio(model)
         convo = model.transcribe("recording.wav", verbose=False, language='en', fp16=False)['text'].lower()
         print(convo)
-        if 'beans' in convo or talking == True:
+        if 'beans' in convo or 'beams' in convo or talking == True:
             print("Name heard!")
             if talking:
                 tag = process_convo(convo)
@@ -93,7 +93,9 @@ def speak(response):
         words = pygame.mixer.Sound('output.mp3')
         words.play()
         time.sleep(words.get_length())
+        print("Speaking complete.")
     except:
+        print("Error occured.")
         words = pygame.mixer.Sound('no_more_tokens.mp3')
         words.play()
         sys.exit()
