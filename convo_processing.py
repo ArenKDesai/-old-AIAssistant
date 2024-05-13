@@ -55,7 +55,7 @@ def get_response(convo):
             }
         ],
         temperature=1,
-        max_tokens=64
+        max_tokens=128
     )
 
     gpt_response = response.choices[0].message.content

@@ -10,7 +10,8 @@ import os
 import time
 import sys
 
-pygame.init() # TODO: move this to main.py
+pygame.init() 
+api_num = 0
 
 def record_audio(model, duration=3, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
     p = pyaudio.PyAudio()
@@ -64,14 +65,15 @@ def main_audio_loop():
             talking = not talking
 
 def speak(response):
+    global api_num
     print("Speaking...")
     CHUNK_SIZE = 1024
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_api}"
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_api[api_num]}"
 
     headers = {
         "Accept": "audio/mpeg",
         "Content-Type": "application/json",
-        "xi-api-key": f"{elabs_api}"
+        "xi-api-key": f"{elabs_api[api_num]}"
     }
 
     data = {
@@ -94,7 +96,6 @@ def speak(response):
         time.sleep(words.get_length())
         print("Speaking complete.")
     except:
-        print("Error occured.")
-        words = pygame.mixer.Sound('no_more_tokens.mp3')
-        words.play()
-        sys.exit()
+        print("No more tokens. Switching API...")
+        api_num += 1
+        speak(response)
