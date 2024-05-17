@@ -1,6 +1,10 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from KEYS import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI
+import nest_asyncio
+import asyncio
+from pyppeteer import launch
+
 
 # Spotipy - Spotify handler
 sp = None
@@ -20,10 +24,28 @@ def initialize_spotify():
     # Get the authorization URL
     auth_url = sp_oauth.get_authorize_url()
 
-    print(f'Please navigate to the following URL to authorize the application: {auth_url}')
+    # Apply the nest_asyncio patch
+    nest_asyncio.apply()
 
-    # After the user authorizes the application, they will be redirected to the redirect URI with a code in the URL
-    response = input('Enter the URL you were redirected to: ')
+    def get_current_url():
+        async def main():
+            # Launch the browser
+            browser = await launch()
+            # Open a new page
+            page = await browser.newPage()
+            # Go to a webpage
+            await page.goto(auth_url)
+            # Get the current URL
+            current_url = page.url
+            # Close the browser
+            await browser.close()
+            return current_url
+
+        # Run the async function and get the result
+        return asyncio.get_event_loop().run_until_complete(main())
+
+    # Use the function to get the current URL
+    response = get_current_url()
 
     # Extract the authorization code from the URL
     code = sp_oauth.parse_response_code(response)

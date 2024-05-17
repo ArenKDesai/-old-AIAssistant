@@ -22,7 +22,8 @@ keywords = [
     'previous',
     'youtube',
     'twitch',
-    'google'
+    'google',
+    'amazon'
 ]
 
 def search_keywords(sentence):
@@ -53,9 +54,12 @@ def process_convo(convo):
         r = requests.get(url).json()
         tag.append(f"datetime={r['datetime']}")
 
-    if 'spotify' in keywords_found and spotify_controller.sp is None:
-        spotify_controller.initialize_spotify()
-        tag.append('spotify_connection=True')
+    if 'spotify' in keywords_found:
+        if spotify_controller.sp is None:
+            spotify_controller.initialize_spotify()
+            tag.append('spotify_connection=True')
+        else:
+            tag.append('spotify_connection=Already connected')
 
     if 'skip' in keywords_found and spotify_controller.sp is not None:
         res = spotify_controller.skip_song()
@@ -84,6 +88,10 @@ def process_convo(convo):
     if 'twitch' in keywords_found:
         webbrowser.open_new_tab('https://www.twitch.tv')
         tag.append('opened_twitch=True')
+
+    if 'amazon' in keywords_found:
+        webbrowser.open_new_tab('https://www.amazon.com')
+        tag.append('opened_amazon=True')
 
     if 'google' in keywords_found:
         first_res = search_engine.search_google(convo.replace('google',''))
