@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 import spotify_controller
 import webbrowser
 import search_engine
+import sys
+from ascii_art import bye
 
 client = OpenAI(api_key=gpt_key)
 
@@ -19,11 +21,14 @@ keywords = [
     'skip',
     'pause',
     'resume',
+    'play',
     'previous',
     'youtube',
     'twitch',
     'google',
-    'amazon'
+    'amazon',
+    'exit',
+    'assistant'
 ]
 
 def search_keywords(sentence):
@@ -69,7 +74,7 @@ def process_convo(convo):
         res = spotify_controller.pause_song()
         tag.append(f'paused_playback={res}')
 
-    if 'resume' in keywords_found and spotify_controller.sp is not None:
+    if ('resume' in keywords_found or 'play' in keywords_found) and spotify_controller.sp is not None:
         res = spotify_controller.resume_song()
         tag.append(f'resumed_playback={res}')
 
@@ -96,6 +101,10 @@ def process_convo(convo):
     if 'google' in keywords_found:
         first_res = search_engine.search_google(convo.replace('google',''))
         tag.append(f'google_search_result={first_res}')
+
+    if 'exit' in keywords_found and 'assistant' in keywords_found:
+        print(bye)
+        sys.exit()
 
     print(f'Prompt: {convo} {tag}')
     return f'{convo} {tag}'

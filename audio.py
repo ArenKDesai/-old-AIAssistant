@@ -1,21 +1,20 @@
 import pyaudio
 import wave
-import threading
 import whisper
-from convo_processing import get_response, process_convo
+from convo_processing import get_response
 import requests
 from KEYS import elabs_api, voice_api
 import pygame
-import os
 import time
-import sys
+from tqdm import tqdm
+from ascii_art import birb, birb_talking
+import os
 
 pygame.init() 
 api_num = 0
 
-def record_audio(duration=3, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
+def record_audio(duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
     p = pyaudio.PyAudio()
-    print("Recoding audio...")
     stream = p.open(format=format,
                     channels=channels,
                     rate=rate,
@@ -24,7 +23,12 @@ def record_audio(duration=3, rate=44100, chunk=1024, channels=2, format=pyaudio.
 
     frames = []
 
-    for i in range(0, int(rate / chunk * duration)):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("Recoding audio...")
+
+    print(birb)
+
+    for i in tqdm(range(0, int(rate / chunk * duration))):
         data = stream.read(chunk)
         frames.append(data)
 
@@ -44,25 +48,15 @@ def record_audio(duration=3, rate=44100, chunk=1024, channels=2, format=pyaudio.
 
 def main_audio_loop():
     model = whisper.load_model("medium")
-    talking = False # Better way to handle this?
 
     while True:    
-        if (talking):
-            record_audio(duration=7)
-        else:
-            record_audio()
+        record_audio()
         convo = model.transcribe("recording.wav", verbose=False, language='en', fp16=False)['text'].lower()
         print(convo)
-        if 'beans' in convo or 'beams' in convo or talking == True:
+        if 'beans' in convo or 'beams' in convo:
             print("Name heard!")
-            if talking:
-                response = get_response(convo) 
-                speak(response) 
-            else:
-                whatsup = pygame.mixer.Sound("whatsup.mp3")
-                whatsup.play()
-                time.sleep(whatsup.get_length())
-            talking = not talking
+            response = get_response(convo) 
+            speak(response) 
 
 def speak(response):
     global api_num
@@ -90,6 +84,7 @@ def speak(response):
         for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
             if chunk:
                 f.write(chunk)
+    print(birb_talking)
     try:
         words = pygame.mixer.Sound('output.mp3')
         words.play()
