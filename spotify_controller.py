@@ -40,4 +40,13 @@ def get_current_song():
         item = current_playback['item']
         return f'{item["name"]} by {", ".join(artist["name"] for artist in item["artists"])}'
     else:
-        return 'No current playback found.' 
+        return 'No current playback found.'
+
+def skip_song():
+    sp.next_track()
+
+def pause_song():
+    sp.pause_playback()
+
+def resume_song():
+    sp.start_playback()

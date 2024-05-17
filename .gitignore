@@ -4,3 +4,4 @@ __pycache__
 .venv
 output.mp3
 recording.wav
+testing.ipynb

@@ -13,7 +13,10 @@ keywords = [
     'time',
     'date',
     'spotify',
-    'song'
+    'song',
+    'skip',
+    'pause',
+    'resume'
 ]
 
 def search_keywords(sentence):
@@ -52,13 +55,25 @@ def process_convo(convo):
         current_song = spotify_controller.get_current_song()
         tag.append(f'current_song={current_song}')
 
+    if 'skip' in keywords_found and spotify_controller.sp is not None:
+        spotify_controller.skip_song()
+        tag.append('skipped_song=True')
+
+    if 'pause' in keywords_found and spotify_controller.sp is not None:
+        spotify_controller.pause_song()
+        tag.append('paused_playback=True')
+
+    if 'resume' in keywords_found and spotify_controller.sp is not None:
+        spotify_controller.resume_song()
+        tag.append('resumed_playback=True')
+
     print(f'Prompt: {convo} {tag}')
     return f'{convo} {tag}'
 
 # Driver to send and receive calls to the GPT API
 def get_response(convo):
     response = client.chat.completions.create(
-        model = 'gpt-4-turbo',
+        model = 'gpt-3.5-turbo',
         messages = [
             {
                 'role':'system',
