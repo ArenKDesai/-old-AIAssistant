@@ -28,7 +28,8 @@ keywords = [
     'google',
     'amazon',
     'exit',
-    'assistant'
+    'assistant',
+    'system'
 ]
 
 def search_keywords(sentence):
@@ -102,7 +103,7 @@ def process_convo(convo):
         first_res = search_engine.search_google(convo.replace('google',''))
         tag.append(f'google_search_result={first_res}')
 
-    if 'exit' in keywords_found and 'assistant' in keywords_found:
+    if 'exit' in keywords_found and ('assistant' in keywords_found or 'system' in keywords_found):
         print(bye)
         sys.exit()
 

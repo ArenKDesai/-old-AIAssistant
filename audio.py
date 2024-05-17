@@ -8,7 +8,7 @@ import pygame
 import time
 from tqdm import tqdm
 from ascii_art import birb, birb_talking
-import os
+import sys
 
 pygame.init() 
 api_num = 0
@@ -23,7 +23,6 @@ def record_audio(duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.
 
     frames = []
 
-    os.system('cls' if os.name == 'nt' else 'clear')
     print("Recoding audio...")
 
     print(birb)
@@ -53,44 +52,48 @@ def main_audio_loop():
         record_audio()
         convo = model.transcribe("recording.wav", verbose=False, language='en', fp16=False)['text'].lower()
         print(convo)
-        if 'beans' in convo or 'beams' in convo:
+        if 'beans' in convo or 'beams' in convo or 'means' in convo or "bean's" in convo:
             print("Name heard!")
             response = get_response(convo) 
             speak(response) 
 
-def speak(response):
+def speak(response, first_try=True):
     global api_num
-    print("Speaking...")
+    if first_try:
+        print("Speaking...")
     CHUNK_SIZE = 1024
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_api[api_num]}"
-
-    headers = {
-        "Accept": "audio/mpeg",
-        "Content-Type": "application/json",
-        "xi-api-key": f"{elabs_api[api_num]}"
-    }
-
-    data = {
-        "text": response,
-        "model_id": "eleven_turbo_v2",
-        "voice_settings": {
-            "stability": 0.5,
-            "similarity_boost": 0.5
-    }
-    }
-
-    response = requests.post(url, json=data, headers=headers)
-    with open('output.mp3', 'wb') as f:
-        for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
-            if chunk:
-                f.write(chunk)
-    print(birb_talking)
     try:
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_api[api_num]}"
+        # print(url)
+        headers = {
+            "Accept": "audio/mpeg",
+            "Content-Type": "application/json",
+            "xi-api-key": f"{elabs_api[api_num]}"
+        }
+
+        data = {
+            "text": response,
+            "model_id": "eleven_turbo_v2",
+            "voice_settings": {
+                "stability": 0.5,
+                "similarity_boost": 0.5
+            }
+        }
+        # print(data)
+        output = requests.post(url, json=data, headers=headers)
+        with open('output.mp3', 'wb') as f:
+            for chunk in output.iter_content(chunk_size=CHUNK_SIZE):
+                if chunk:
+                    f.write(chunk)
+        if first_try:
+            print(birb_talking)
         words = pygame.mixer.Sound('output.mp3')
         words.play()
         time.sleep(words.get_length())
         print("Speaking complete.")
+    except IndexError:
+        sys.exit()
     except:
         print("No more tokens. Switching API...")
         api_num += 1
-        speak(response)
+        speak(response, first_try=False)
