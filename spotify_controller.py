@@ -33,23 +33,42 @@ def initialize_spotify():
     sp = spotipy.Spotify(auth=token_info['access_token'])
 
 def get_current_song():
-    # Get the current playback information
-    current_playback = sp.current_playback()
-    # Print the current playback information
-    if current_playback is not None:
-        item = current_playback['item']
-        return f'{item["name"]} by {", ".join(artist["name"] for artist in item["artists"])}'
-    else:
-        return 'No current playback found.'
+    try:
+        # Get the current playback information
+        current_playback = sp.current_playback()
+        # Print the current playback information
+        if current_playback is not None:
+            item = current_playback['item']
+            return f'{item["name"]} by {", ".join(artist["name"] for artist in item["artists"])}'
+        else:
+            return 'No current playback found.'
+    except:
+        return 'playback API failure'
 
 def skip_song():
-    sp.next_track()
+    try:
+        sp.next_track()
+        return 'True'
+    except:
+        return 'False'
 
 def pause_song():
-    sp.pause_playback()
+    try:
+        sp.pause_playback()
+        return 'True'
+    except:
+        return "False"
 
 def resume_song():
-    sp.start_playback()
+    try:
+        sp.start_playback()
+        return 'True'
+    except:
+        return 'False'
 
 def previous_song():
-    sp.previous_track()
+    try:
+        sp.previous_track()
+        return "True"
+    except:
+        return 'False'

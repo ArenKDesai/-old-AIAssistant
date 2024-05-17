@@ -53,25 +53,25 @@ def process_convo(convo):
         r = requests.get(url).json()
         tag.append(f"datetime={r['datetime']}")
 
-    if 'spotify' in keywords_found:
+    if 'spotify' in keywords_found and spotify_controller.sp is None:
         spotify_controller.initialize_spotify()
         tag.append('spotify_connection=True')
 
     if 'skip' in keywords_found and spotify_controller.sp is not None:
-        spotify_controller.skip_song()
-        tag.append('skipped_song=True')
+        res = spotify_controller.skip_song()
+        tag.append(f'skipped_song={res}')
 
     if 'pause' in keywords_found and spotify_controller.sp is not None:
-        spotify_controller.pause_song()
-        tag.append('paused_playback=True')
+        res = spotify_controller.pause_song()
+        tag.append(f'paused_playback={res}')
 
     if 'resume' in keywords_found and spotify_controller.sp is not None:
-        spotify_controller.resume_song()
-        tag.append('resumed_playback=True')
+        res = spotify_controller.resume_song()
+        tag.append(f'resumed_playback={res}')
 
     if 'previous' in keywords_found and spotify_controller.sp is not None:
-        spotify_controller.previous_song()
-        tag.append('replaying_previous_track=True')
+        res = spotify_controller.previous_song()
+        tag.append(f'replaying_previous_track={res}')
 
     if 'song' in keywords_found and spotify_controller.sp is not None:
         current_song = spotify_controller.get_current_song()
@@ -102,6 +102,7 @@ def get_response(convo):
                 'content':f'''You are Beans, the sassy, sarcastic AI Assistant of {user_name}.
                  You act with a mind of your own and always stay in character. 
                  Anything in brackets is a Python list of optional information you may include in your message. 
+                 If you are asked to complete a task, use the information in brackets to complete the task. 
                  Keep your answers concise. 
                  No matter what, you never break character. 
                  Your response will be converted into speech, so only respond as if you are speaking out loud.'''
