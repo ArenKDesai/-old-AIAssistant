@@ -90,19 +90,19 @@ def speak(response, first_try=True):
             print(birb_talking)
 
         # Playing audio
-        if spotify_controller.sa is not None:
-            spotify_controller.change_volume('down')
         words = pygame.mixer.Sound('output.mp3')
+        if spotify_controller.sp is not None:
+            spotify_controller.change_volume('down')
         words.play()
-        if spotify_controller.sa is not None:
-            spotify_controller.change_volume('up')
         time.sleep(words.get_length())
+        if spotify_controller.sp is not None:
+            spotify_controller.change_volume('up')
 
 
         print("Speaking complete.")
     except IndexError:
         sys.exit()
-    except:
+    except pygame.error:
         print("No more tokens. Switching API...")
         api_num += 1
         speak(response, first_try=False)

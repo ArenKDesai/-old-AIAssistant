@@ -29,7 +29,10 @@ keywords = [
     'amazon',
     'exit',
     'assistant',
-    'system'
+    'system',
+    'increase',
+    'decrese',
+    'volume'
 ]
 
 def search_keywords(sentence):
@@ -42,6 +45,7 @@ def process_convo(convo):
     keywords_found = search_keywords(convo)
     tag = []
 
+    # General information
     if 'weather' in keywords_found or 'temperature' in keywords_found:
         url = 'https://forecast.weather.gov/MapClick.php?textField1=43.07&textField2=-89.39'
         r = requests.get(url)
@@ -60,6 +64,7 @@ def process_convo(convo):
         r = requests.get(url).json()
         tag.append(f"datetime={r['datetime']}")
 
+    # Spotify playback
     if 'spotify' in keywords_found:
         if spotify_controller.sp is None:
             spotify_controller.initialize_spotify()
@@ -87,6 +92,13 @@ def process_convo(convo):
         current_song = spotify_controller.get_current_song()
         tag.append(f'current_song={current_song}')
 
+    if 'volume' in keywords_found:
+        if 'increase' in keywords_found:
+            spotify_controller.change_volume('up')
+        if 'decrease' in keywords_found:
+            spotify_controller.change_volume('down')
+
+    # Internet control
     if 'youtube' in keywords_found:
         webbrowser.open_new_tab('https://www.youtube.com')
         tag.append('opened_youtube=True')

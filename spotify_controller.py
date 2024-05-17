@@ -6,6 +6,7 @@ import asyncio
 from pyppeteer import launch
 
 sp = None
+vol = None
 
 # Begin spotify control
 def initialize_spotify():
@@ -100,6 +101,8 @@ def get_volume():
     return str(vol)
 
 def change_volume(direction):
+    global vol
+    global sp
     if direction == "up":
         vol += 20
         if vol > 100:
@@ -113,3 +116,4 @@ def change_volume(direction):
 
 def set_volume(amt):
     sp.volume(amt)
+    print("got here")
