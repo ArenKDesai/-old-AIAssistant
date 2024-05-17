@@ -50,3 +50,6 @@ def pause_song():
 
 def resume_song():
     sp.start_playback()
+
+def previous_song():
+    sp.previous_track()

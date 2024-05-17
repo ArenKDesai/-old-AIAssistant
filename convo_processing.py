@@ -4,6 +4,8 @@ from openai import OpenAI
 import re
 from bs4 import BeautifulSoup
 import spotify_controller
+import webbrowser
+import search_engine
 
 client = OpenAI(api_key=gpt_key)
 
@@ -16,7 +18,11 @@ keywords = [
     'song',
     'skip',
     'pause',
-    'resume'
+    'resume',
+    'previous',
+    'youtube',
+    'twitch',
+    'google'
 ]
 
 def search_keywords(sentence):
@@ -51,10 +57,6 @@ def process_convo(convo):
         spotify_controller.initialize_spotify()
         tag.append('spotify_connection=True')
 
-    if 'song' in keywords_found and spotify_controller.sp is not None:
-        current_song = spotify_controller.get_current_song()
-        tag.append(f'current_song={current_song}')
-
     if 'skip' in keywords_found and spotify_controller.sp is not None:
         spotify_controller.skip_song()
         tag.append('skipped_song=True')
@@ -66,6 +68,26 @@ def process_convo(convo):
     if 'resume' in keywords_found and spotify_controller.sp is not None:
         spotify_controller.resume_song()
         tag.append('resumed_playback=True')
+
+    if 'previous' in keywords_found and spotify_controller.sp is not None:
+        spotify_controller.previous_song()
+        tag.append('replaying_previous_track=True')
+
+    if 'song' in keywords_found and spotify_controller.sp is not None:
+        current_song = spotify_controller.get_current_song()
+        tag.append(f'current_song={current_song}')
+
+    if 'youtube' in keywords_found:
+        webbrowser.open_new_tab('https://www.youtube.com')
+        tag.append('opened_youtube=True')
+
+    if 'twitch' in keywords_found:
+        webbrowser.open_new_tab('https://www.twitch.tv')
+        tag.append('opened_twitch=True')
+
+    if 'google' in keywords_found:
+        first_res = search_engine.search_google(convo.replace('google',''))
+        tag.append(f'google_search_result={first_res}')
 
     print(f'Prompt: {convo} {tag}')
     return f'{convo} {tag}'
