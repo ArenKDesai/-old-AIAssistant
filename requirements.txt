@@ -6,3 +6,4 @@ requests
 pygame
 whisper
 time
+spotipy

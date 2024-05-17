@@ -3,12 +3,17 @@ import requests
 from openai import OpenAI
 import re
 from bs4 import BeautifulSoup
+import spotify_controller
 
 client = OpenAI(api_key=gpt_key)
 
 keywords = [
     'weather',
-    'temperature'
+    'temperature',
+    'time',
+    'date',
+    'spotify',
+    'song'
 ]
 
 def search_keywords(sentence):
@@ -16,6 +21,7 @@ def search_keywords(sentence):
     matches = re.findall(regex_pattern, sentence, flags=re.IGNORECASE)
     return matches
 
+# Main processor to add tags to GPT input
 def process_convo(convo):
     keywords_found = search_keywords(convo)
     tag = []
@@ -33,12 +39,26 @@ def process_convo(convo):
         tag.append(f"weather_tonight={tn_weather}")
         tag.append(f"temperature_tonight={tn_temp}")
 
+    if 'time' in keywords_found or 'date' in keywords_found:
+        url = 'http://worldtimeapi.org/api/timezone/America/Chicago'
+        r = requests.get(url).json()
+        tag.append(f"datetime={r['datetime']}")
+
+    if 'spotify' in keywords_found:
+        spotify_controller.initialize_spotify()
+        tag.append('spotify_connection=True')
+
+    if 'song' in keywords_found and spotify_controller.sp is not None:
+        current_song = spotify_controller.get_current_song()
+        tag.append(f'current_song={current_song}')
+
     print(f'Prompt: {convo} {tag}')
     return f'{convo} {tag}'
 
+# Driver to send and receive calls to the GPT API
 def get_response(convo):
     response = client.chat.completions.create(
-        model = 'gpt-3.5-turbo',
+        model = 'gpt-4-turbo',
         messages = [
             {
                 'role':'system',

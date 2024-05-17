@@ -13,7 +13,7 @@ import sys
 pygame.init() 
 api_num = 0
 
-def record_audio(model, duration=3, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
+def record_audio(duration=3, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
     p = pyaudio.PyAudio()
     print("Recoding audio...")
     stream = p.open(format=format,
@@ -48,9 +48,9 @@ def main_audio_loop():
 
     while True:    
         if (talking):
-            record_audio(model, duration=7)
+            record_audio(duration=7)
         else:
-            record_audio(model)
+            record_audio()
         convo = model.transcribe("recording.wav", verbose=False, language='en', fp16=False)['text'].lower()
         print(convo)
         if 'beans' in convo or 'beams' in convo or talking == True:
