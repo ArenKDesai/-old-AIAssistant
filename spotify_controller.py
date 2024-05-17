@@ -5,13 +5,13 @@ import nest_asyncio
 import asyncio
 from pyppeteer import launch
 
-
-# Spotipy - Spotify handler
 sp = None
 
 # Begin spotify control
 def initialize_spotify():
     global sp
+    global vol
+    vol = 80
     # Define your credentials and the scope
     SCOPE = 'user-read-playback-state user-modify-playback-state user-read-currently-playing'
 
@@ -53,6 +53,7 @@ def initialize_spotify():
 
     # Create a Spotify object with the access token
     sp = spotipy.Spotify(auth=token_info['access_token'])
+    set_volume(vol)
 
 def get_current_song():
     try:
@@ -94,3 +95,21 @@ def previous_song():
         return "True"
     except:
         return 'False'
+    
+def get_volume():
+    return str(vol)
+
+def change_volume(direction):
+    if direction == "up":
+        vol += 20
+        if vol > 100:
+            vol = 100
+        sp.volume(vol)
+    else:
+        vol -= 20
+        if vol < 0:
+            vol = 0
+        sp.volume(vol)
+
+def set_volume(amt):
+    sp.volume(amt)

@@ -9,6 +9,7 @@ import time
 from tqdm import tqdm
 from ascii_art import birb, birb_talking
 import sys
+import spotify_controller
 
 pygame.init() 
 api_num = 0
@@ -87,9 +88,17 @@ def speak(response, first_try=True):
                     f.write(chunk)
         if first_try:
             print(birb_talking)
+
+        # Playing audio
+        if spotify_controller.sa is not None:
+            spotify_controller.change_volume('down')
         words = pygame.mixer.Sound('output.mp3')
         words.play()
+        if spotify_controller.sa is not None:
+            spotify_controller.change_volume('up')
         time.sleep(words.get_length())
+
+
         print("Speaking complete.")
     except IndexError:
         sys.exit()
