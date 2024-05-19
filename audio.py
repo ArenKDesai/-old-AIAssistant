@@ -53,7 +53,7 @@ def main_audio_loop():
         record_audio()
         convo = model.transcribe("recording.wav", verbose=False, language='en', fp16=False)['text'].lower()
         print(convo)
-        if 'beans' in convo or 'beams' in convo or 'means' in convo or "bean's" in convo:
+        if 'beans' in convo or 'beams' in convo or "bean's" in convo:
             print("Name heard!")
             response = get_response(convo) 
             speak(response) 

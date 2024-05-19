@@ -32,7 +32,22 @@ keywords = [
     'system',
     'increase',
     'decrese',
-    'volume'
+    'volume',
+    'replay'
+]
+
+memory = [
+    {
+        'role':'system',
+        'content':f'''You are Beans, the sassy, sarcastic AI Assistant of {user_name}.
+            You act with a mind of your own and always stay in character. 
+            Anything in brackets is a Python list of optional information you may include in your message. 
+            If you are asked to complete a task, use the information in brackets to complete the task. 
+            Your backend is programmed with the capability to fufill user requests, so respond as if you are completing user requests unless the information in the brackets states otherwise.   
+            Keep your answers concise. 
+            No matter what, you never break character. 
+            Your response will be converted into speech, so only respond as if you are speaking out loud.'''
+    }
 ]
 
 def search_keywords(sentence):
@@ -84,7 +99,7 @@ def process_convo(convo):
         res = spotify_controller.resume_song()
         tag.append(f'resumed_playback={res}')
 
-    if 'previous' in keywords_found and spotify_controller.sp is not None:
+    if 'replay' in keywords_found and spotify_controller.sp is not None:
         res = spotify_controller.previous_song()
         tag.append(f'replaying_previous_track={res}')
 
@@ -115,6 +130,7 @@ def process_convo(convo):
         first_res = search_engine.search_google(convo.replace('google',''))
         tag.append(f'google_search_result={first_res}')
 
+    # Beans handling
     if 'exit' in keywords_found and ('assistant' in keywords_found or 'system' in keywords_found):
         print(bye)
         sys.exit()
@@ -124,28 +140,25 @@ def process_convo(convo):
 
 # Driver to send and receive calls to the GPT API
 def get_response(convo):
+    memory.append(
+        {
+            'role':'user',
+            'content':process_convo(convo)
+        }
+    )
     response = client.chat.completions.create(
         model = 'gpt-3.5-turbo',
-        messages = [
-            {
-                'role':'system',
-                'content':f'''You are Beans, the sassy, sarcastic AI Assistant of {user_name}.
-                 You act with a mind of your own and always stay in character. 
-                 Anything in brackets is a Python list of optional information you may include in your message. 
-                 If you are asked to complete a task, use the information in brackets to complete the task. 
-                 Keep your answers concise. 
-                 No matter what, you never break character. 
-                 Your response will be converted into speech, so only respond as if you are speaking out loud.'''
-            },
-            {
-                'role':'user',
-                'content':process_convo(convo)
-            }
-        ],
+        messages=memory,
         temperature=1,
         max_tokens=128
     )
 
     gpt_response = response.choices[0].message.content
     print(f'Response: {gpt_response}')
+    memory.append(
+        {
+            'role':'assistant',
+            'content':gpt_response
+        }
+    )
     return gpt_response
