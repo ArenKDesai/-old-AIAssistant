@@ -55,7 +55,6 @@ def main_audio_loop():
         print(colorama.Style.DIM)
         convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
         print(colorama.Style.RESET_ALL)
-        subprocess.run('cls', shell=True)
 
         print(colorama.Style.DIM + convo + colorama.Style.RESET_ALL)
         if 'beans' in convo or 'beams' in convo or "bean's" in convo:
@@ -87,8 +86,9 @@ def speak(response, first_try=True):
                 if chunk:
                     f.write(chunk)
         if first_try:
+            subprocess.run('cls', shell=True)
             print(birb_talking)
-            print(colorama.Fore.MAGENTA + response + colorama.Fore.RESET)
+            print('                     ' + colorama.Fore.MAGENTA + response + colorama.Fore.RESET)
 
         # Playing audio
         words = pygame.mixer.Sound('output.mp3')

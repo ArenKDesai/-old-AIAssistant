@@ -31,7 +31,7 @@ keywords = [
     'assistant',
     'system',
     'increase',
-    'decrese',
+    'decrease',
     'volume',
     'replay'
 ]
