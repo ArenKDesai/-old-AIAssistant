@@ -4,7 +4,7 @@ wave
 threading
 requests
 pygame
-whisper
+openai-whisper
 time
 spotipy
 pyppeteer
