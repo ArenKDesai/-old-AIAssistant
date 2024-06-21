@@ -1,4 +1,5 @@
 import pyaudio
+import os
 import wave
 import whisper
 from convo_processing import get_response
@@ -10,8 +11,11 @@ from tqdm import tqdm
 from ascii_art import birb, birb_talking
 import sys
 import spotify_controller
+import subprocess
+import colorama
 
 pygame.init() 
+os.environ["FFMPEG_BINARY"] = r"C:\ffmpeg\bin\ffmpeg.exe"
 api_num = 0
 
 def record_audio(duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
@@ -24,18 +28,15 @@ def record_audio(duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.
 
     frames = []
 
-    print("Recoding audio...")
-
-    print(birb)
-
-    for i in tqdm(range(0, int(rate / chunk * duration))):
+    print(colorama.Style.DIM)
+    for i in tqdm(range(0, int(rate / chunk * duration)), desc='Beans is listening'):
         data = stream.read(chunk)
         frames.append(data)
+    print(colorama.Style.RESET_ALL)
 
     stream.stop_stream()
     stream.close()
     p.terminate()
-    print("Saving audio...")
 
     wf = wave.open("recording.wav", 'wb')
     wf.setnchannels(channels)
@@ -43,29 +44,29 @@ def record_audio(duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.
     wf.setframerate(rate)
     wf.writeframes(b''.join(frames))
     wf.close()
-    print("Recording complete.\n")
-
 
 def main_audio_loop():
-    model = whisper.load_model("medium")
+    model = whisper.load_model("small")
 
     while True:    
+        subprocess.run('cls', shell=True)
+        print(birb)
         record_audio()
-        convo = model.transcribe("recording.wav", verbose=False, language='en', fp16=False)['text'].lower()
-        print(convo)
+        print(colorama.Style.DIM)
+        convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
+        print(colorama.Style.RESET_ALL)
+        subprocess.run('cls', shell=True)
+
+        print(colorama.Style.DIM + convo + colorama.Style.RESET_ALL)
         if 'beans' in convo or 'beams' in convo or "bean's" in convo:
-            print("Name heard!")
             response = get_response(convo) 
             speak(response) 
 
 def speak(response, first_try=True):
     global api_num
-    if first_try:
-        print("Speaking...")
     CHUNK_SIZE = 1024
     try:
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_api[api_num]}"
-        # print(url)
         headers = {
             "Accept": "audio/mpeg",
             "Content-Type": "application/json",
@@ -80,7 +81,6 @@ def speak(response, first_try=True):
                 "similarity_boost": 0.5
             }
         }
-        # print(data)
         output = requests.post(url, json=data, headers=headers)
         with open('output.mp3', 'wb') as f:
             for chunk in output.iter_content(chunk_size=CHUNK_SIZE):
@@ -88,6 +88,7 @@ def speak(response, first_try=True):
                     f.write(chunk)
         if first_try:
             print(birb_talking)
+            print(colorama.Fore.MAGENTA + response + colorama.Fore.RESET)
 
         # Playing audio
         words = pygame.mixer.Sound('output.mp3')
@@ -97,9 +98,6 @@ def speak(response, first_try=True):
         time.sleep(words.get_length())
         if spotify_controller.sp is not None:
             spotify_controller.change_volume('up')
-
-
-        print("Speaking complete.")
     except IndexError:
         sys.exit()
     except pygame.error:

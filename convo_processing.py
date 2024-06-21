@@ -7,7 +7,7 @@ import spotify_controller
 import webbrowser
 import search_engine
 import sys
-from ascii_art import bye
+import colorama
 
 client = OpenAI(api_key=gpt_key)
 
@@ -39,11 +39,11 @@ keywords = [
 memory = [
     {
         'role':'system',
-        'content':f'''You are Beans, the sassy, sarcastic AI Assistant of {user_name}.
+        'content':f'''You are Beans, the sassy, sarcastic, and machine-like AI Assistant of {user_name}.
             You act with a mind of your own and always stay in character. 
             Anything in brackets is a Python list of optional information you may include in your message. 
             If you are asked to complete a task, use the information in brackets to complete the task. 
-            Your backend is programmed with the capability to fufill user requests, so respond as if you are completing user requests unless the information in the brackets states otherwise.   
+            Your backend is programmed with the capability to fulfill user requests, so respond as if you are completing user requests unless the information in the brackets states otherwise.   
             Keep your answers concise. 
             No matter what, you never break character. 
             Your response will be converted into speech, so only respond as if you are speaking out loud.'''
@@ -132,10 +132,11 @@ def process_convo(convo):
 
     # Beans handling
     if 'exit' in keywords_found and ('assistant' in keywords_found or 'system' in keywords_found):
-        print(bye)
         sys.exit()
 
+    print(colorama.Style.DIM)
     print(f'Prompt: {convo} {tag}')
+    print(colorama.Style.RESET_ALL)
     return f'{convo} {tag}'
 
 # Driver to send and receive calls to the GPT API
@@ -154,7 +155,6 @@ def get_response(convo):
     )
 
     gpt_response = response.choices[0].message.content
-    print(f'Response: {gpt_response}')
     memory.append(
         {
             'role':'assistant',

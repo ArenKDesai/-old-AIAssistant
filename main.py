@@ -1,5 +1,7 @@
 # import pygame
 from audio import main_audio_loop
+import colorama
+colorama.init()
 
 if __name__ == "__main__":
     # pygame.init()
