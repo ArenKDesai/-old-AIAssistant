@@ -1,19 +1,12 @@
 # import pygame
-from audio import main_audio_loop
+from audio import main_audio_loop, pedal_loop
 import colorama
+import sys
 colorama.init()
 
 if __name__ == "__main__":
-    # pygame.init()
-    # FPS = pygame.time.Clock()
-    # DISPLAYSURF = pygame.display.set_mode((1440, 900), pygame.FULLSCREEN)
-    # DISPLAYSURF.fill((0, 0, 0))
-    
-    # while True:
-    #     for event in pygame.event.get():
-    #         if event.type == pygame.QUIT:
-    #             pygame.quit()
-    #             quit()
-    #     pygame.display.update()
-    #     FPS.tick(60)
-    main_audio_loop()
+    for arg in sys.argv:
+        if '--pedal' in arg:
+            pedal_loop()
+    else:
+        main_audio_loop()

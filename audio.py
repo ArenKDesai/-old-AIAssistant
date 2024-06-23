@@ -13,12 +13,13 @@ import sys
 import spotify_controller
 import subprocess
 import colorama
+from pynput import keyboard
 
 pygame.init() 
 os.environ["FFMPEG_BINARY"] = r"C:\ffmpeg\bin\ffmpeg.exe"
 api_num = 0
 
-def record_audio(duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
+def record_audio(pedal=False, duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
     p = pyaudio.PyAudio()
     stream = p.open(format=format,
                     channels=channels,
@@ -29,9 +30,46 @@ def record_audio(duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.
     frames = []
 
     print(colorama.Style.DIM)
-    for i in tqdm(range(0, int(rate / chunk * duration)), desc='Beans is listening'):
-        data = stream.read(chunk)
-        frames.append(data)
+    if pedal:
+        # Set up keyboard listener
+        recording = False
+        def on_press(key):
+            nonlocal recording
+            try:
+                if key.char == 'b' and not recording:
+                    recording = True
+            except AttributeError:
+                pass
+
+        def on_release(key):
+            nonlocal recording
+            try:
+                if key.char == 'b' and recording:
+                    recording = False
+                    return False  # Stop listener
+            except AttributeError:
+                pass
+
+        listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+        listener.start()
+
+        # Wait for 'b' key press to start recording
+        print("Press the foot pedal (b key) to start recording...")
+        while not recording:
+            pass
+
+        # Record until 'b' key is released
+        with tqdm(desc='Beans is listening', unit=' chunks') as pbar:
+            while recording:
+                data = stream.read(chunk)
+                frames.append(data)
+                pbar.update(1)
+
+        listener.stop()
+    else:
+        for i in tqdm(range(0, int(rate / chunk * duration)), desc='Beans is listening'):
+            data = stream.read(chunk)
+            frames.append(data)
     print(colorama.Style.RESET_ALL)
 
     stream.stop_stream()
@@ -46,7 +84,7 @@ def record_audio(duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.
     wf.close()
 
 def main_audio_loop():
-    model = whisper.load_model("small")
+    model = whisper.load_model("tiny")
 
     while True:    
         subprocess.run('cls', shell=True)
@@ -56,12 +94,28 @@ def main_audio_loop():
         convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
         print(colorama.Style.RESET_ALL)
 
-        print(colorama.Style.DIM + convo + colorama.Style.RESET_ALL)
         if 'beans' in convo or 'beams' in convo or "bean's" in convo:
             response = get_response(convo) 
             speak(response) 
 
-def speak(response, first_try=True):
+def pedal_loop():
+    model = whisper.load_model("medium")
+
+    while True:
+        subprocess.run('cls', shell=True)
+        print(birb)
+        record_audio(pedal=True)
+        print(colorama.Style.DIM)
+        convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
+        print(colorama.Style.RESET_ALL)
+
+        print(colorama.Style.DIM + convo + colorama.Style.RESET_ALL)
+        response = get_response(convo) 
+        with open('beans_log','a') as f:
+            f.write(f'Response: {response}')
+        speak(response) 
+
+def speak(response:str, first_try=True):
     global api_num
     CHUNK_SIZE = 1024
     try:

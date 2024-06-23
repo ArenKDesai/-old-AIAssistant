@@ -1,5 +1,6 @@
 from KEYS import gpt_key, user_name
 import requests
+from datetime import datetime
 from openai import OpenAI
 import re
 from bs4 import BeautifulSoup
@@ -136,6 +137,8 @@ def process_convo(convo):
 
     print(colorama.Style.DIM)
     print(f'Prompt: {convo} {tag}')
+    with open('beans_log','a') as f:
+        f.write(f'{datetime.now()}\nPrompt: {convo} {tag}')
     print(colorama.Style.RESET_ALL)
     return f'{convo} {tag}'
 
