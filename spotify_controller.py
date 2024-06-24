@@ -15,6 +15,7 @@ def initialize_spotify():
     vol = 80
     # Define your credentials and the scope
     SCOPE = 'user-read-playback-state user-modify-playback-state user-read-currently-playing'
+    PYPPETEER_CHROMIUM_REVISION = '1263111'
 
     # Create a SpotifyOAuth object
     sp_oauth = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,

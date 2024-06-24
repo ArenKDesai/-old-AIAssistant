@@ -7,5 +7,6 @@ pygame
 openai-whisper
 time
 spotipy
-pyppeteer
+pyppeteer = 1.0.0
 google-api-python-client
+flask

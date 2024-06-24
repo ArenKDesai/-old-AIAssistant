@@ -2,6 +2,7 @@ from KEYS import gpt_key, user_name
 import requests
 from datetime import datetime
 from openai import OpenAI
+import spotipy
 import re
 from bs4 import BeautifulSoup
 import spotify_controller
@@ -83,8 +84,11 @@ def process_convo(convo):
     # Spotify playback
     if 'spotify' in keywords_found:
         if spotify_controller.sp is None:
-            spotify_controller.initialize_spotify()
-            tag.append('spotify_connection=True')
+            try:
+                spotify_controller.initialize_spotify()
+                tag.append('spotify_connection=True')
+            except spotipy.exceptions.SpotifyException as se:
+                tag.append(f'{se}')
         else:
             tag.append('spotify_connection=Already connected')
 
@@ -138,7 +142,10 @@ def process_convo(convo):
     print(colorama.Style.DIM)
     print(f'Prompt: {convo} {tag}')
     with open('beans_log','a') as f:
-        f.write(f'{datetime.now()}\nPrompt: {convo} {tag}')
+        try:
+            f.write(f'\n{datetime.now()}\nPrompt: {convo} {tag}\n')
+        except UnicodeEncodeError as uee:
+            f.write(f'\n{datetime.now()}\nError: {uee}\n')
     print(colorama.Style.RESET_ALL)
     return f'{convo} {tag}'
 
@@ -151,7 +158,7 @@ def get_response(convo):
         }
     )
     response = client.chat.completions.create(
-        model = 'gpt-3.5-turbo',
+        model = 'gpt-4-turbo',
         messages=memory,
         temperature=1,
         max_tokens=128

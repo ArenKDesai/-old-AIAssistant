@@ -14,14 +14,25 @@ import spotify_controller
 import subprocess
 import colorama
 from pynput import keyboard
-
 pygame.init() 
+
 os.environ["FFMPEG_BINARY"] = r"C:\ffmpeg\bin\ffmpeg.exe"
 api_num = 0
 
-def record_audio(pedal=False, duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
-    p = pyaudio.PyAudio()
-    stream = p.open(format=format,
+def record_audio(pyaudio_instance, pedal=False, duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
+    """
+    Allows for Beans to hear audio
+    Parameters:
+        pedal: bool, if true then it uses the pedal (b key) instead of duration
+        duration: int, seconds that Beans listens before thinking
+        rate: int, how quickly beans will process audio input
+        chunks: int, how much data beans will hear at once
+        channels: how many channels the audio devices has
+        format: format of audio recording
+    Return:
+        Saves 'recording.wav' in cwd
+    """
+    stream = pyaudio_instance.open(format=format,
                     channels=channels,
                     rate=rate,
                     input=True,
@@ -29,6 +40,7 @@ def record_audio(pedal=False, duration=5, rate=44100, chunk=1024, channels=2, fo
 
     frames = []
 
+    # Dim the recoding so Beans stands out
     print(colorama.Style.DIM)
     if pedal:
         # Set up keyboard listener
@@ -70,50 +82,61 @@ def record_audio(pedal=False, duration=5, rate=44100, chunk=1024, channels=2, fo
         for i in tqdm(range(0, int(rate / chunk * duration)), desc='Beans is listening'):
             data = stream.read(chunk)
             frames.append(data)
+    # Remove dim
     print(colorama.Style.RESET_ALL)
 
     stream.stop_stream()
     stream.close()
-    p.terminate()
+    # TODO: not closing pyaudio_instance
 
     wf = wave.open("recording.wav", 'wb')
     wf.setnchannels(channels)
-    wf.setsampwidth(p.get_sample_size(format))
+    wf.setsampwidth(pyaudio_instance.get_sample_size(format))
     wf.setframerate(rate)
     wf.writeframes(b''.join(frames))
     wf.close()
 
-def main_audio_loop():
-    model = whisper.load_model("tiny")
+def main_audio_loop(pyaudio_instance, model):
+    """
+    Function called during Beans brain loop that allows Beans to hear and speak
+    """
 
-    while True:    
-        subprocess.run('cls', shell=True)
-        print(birb)
-        record_audio()
-        print(colorama.Style.DIM)
-        convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
-        print(colorama.Style.RESET_ALL)
+    subprocess.run('cls', shell=True)
+    print(birb)
+    # Call function to record audio, default 5 seconds
+    record_audio(pyaudio_instance=pyaudio_instance)
+    print(colorama.Style.DIM)
+    # STT from OpenAI Whisper
+    convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
+    print(colorama.Style.RESET_ALL)
 
-        if 'beans' in convo or 'beams' in convo or "bean's" in convo:
-            response = get_response(convo) 
-            speak(response) 
-
-def pedal_loop():
-    model = whisper.load_model("medium")
-
-    while True:
-        subprocess.run('cls', shell=True)
-        print(birb)
-        record_audio(pedal=True)
-        print(colorama.Style.DIM)
-        convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
-        print(colorama.Style.RESET_ALL)
-
-        print(colorama.Style.DIM + convo + colorama.Style.RESET_ALL)
+    if 'beans' in convo or 'beams' in convo or "bean's" in convo:
+        # Process response with Beans GPT
         response = get_response(convo) 
-        with open('beans_log','a') as f:
-            f.write(f'Response: {response}')
+        # Get Beans to speak the response
         speak(response) 
+
+def pedal_loop(pyaudio_instance, model):
+    """
+    Function called during Beans brain loop that allows Beans to hear and speak
+    This one is called if the pedal is active
+    """
+
+    subprocess.run('cls', shell=True)
+    print(birb)
+    record_audio(pedal=True,pyaudio_instance=pyaudio_instance)
+    print(colorama.Style.DIM)
+    convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
+    print(colorama.Style.RESET_ALL)
+
+    print(colorama.Style.DIM + convo + colorama.Style.RESET_ALL)
+    response = get_response(convo) 
+    with open('beans_log','a') as f:
+        try:
+            f.write(f'Response: {response}')
+        except UnicodeEncodeError as uee:
+            f.write(f'Error: {uee}\n')
+    speak(response) 
 
 def speak(response:str, first_try=True):
     global api_num
@@ -142,7 +165,7 @@ def speak(response:str, first_try=True):
         if first_try:
             subprocess.run('cls', shell=True)
             print(birb_talking)
-            print('                     ' + colorama.Fore.MAGENTA + response + colorama.Fore.RESET)
+            print('             ' + colorama.Fore.MAGENTA + response + colorama.Fore.RESET)
 
         # Playing audio
         words = pygame.mixer.Sound('output.mp3')
