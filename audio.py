@@ -1,5 +1,7 @@
 import pyaudio
 import os
+from beans_frontend import *
+import os
 import wave
 import whisper
 from convo_processing import get_response
@@ -171,10 +173,12 @@ def speak(response:str, first_try=True):
         words = pygame.mixer.Sound('output.mp3')
         if spotify_controller.sp is not None:
             spotify_controller.change_volume('down')
+        show_image_in_bottom_right(os.path.join('art','bird_open_mouth.png'))
         words.play()
         time.sleep(words.get_length())
         if spotify_controller.sp is not None:
             spotify_controller.change_volume('up')
+        show_image_in_bottom_right(os.path.join('art','bird_closed_mouth.png'))
     except IndexError:
         sys.exit()
     except pygame.error:

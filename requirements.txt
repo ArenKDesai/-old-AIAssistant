@@ -1,12 +1,15 @@
 pyaudio
+# use sudo apt install python3-pyaudio on Linux
 SpeechRecognition[whisper-api]
+openai-whisper
 wave
-threading
+thread
 requests
 pygame
 openai-whisper
-time
 spotipy
-pyppeteer = 1.0.0
+pyppeteer == 1.0.0
 google-api-python-client
+nest_asyncio
 flask
+pynput
