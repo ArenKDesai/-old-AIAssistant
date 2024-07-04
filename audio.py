@@ -1,7 +1,5 @@
 import pyaudio
-import os
 from beans_frontend import *
-import os
 import wave
 import whisper
 from convo_processing import get_response
@@ -9,136 +7,86 @@ import requests
 from KEYS import elabs_api, voice_api
 import pygame
 import time
-from tqdm import tqdm
-from ascii_art import birb, birb_talking
 import sys
 import spotify_controller
 import subprocess
 import colorama
+import threading
 from pynput import keyboard
 pygame.init() 
 
-os.environ["FFMPEG_BINARY"] = r"C:\ffmpeg\bin\ffmpeg.exe"
+# os.environ["FFMPEG_BINARY"] = r"C:\ffmpeg\bin\ffmpeg.exe"
 api_num = 0
 
-def record_audio(pyaudio_instance, pedal=False, duration=5, rate=44100, chunk=1024, channels=2, format=pyaudio.paInt16):
-    """
-    Allows for Beans to hear audio
-    Parameters:
-        pedal: bool, if true then it uses the pedal (b key) instead of duration
-        duration: int, seconds that Beans listens before thinking
-        rate: int, how quickly beans will process audio input
-        chunks: int, how much data beans will hear at once
-        channels: how many channels the audio devices has
-        format: format of audio recording
-    Return:
-        Saves 'recording.wav' in cwd
-    """
-    stream = pyaudio_instance.open(format=format,
-                    channels=channels,
-                    rate=rate,
-                    input=True,
-                    frames_per_buffer=chunk)
+class AudioRecorder:
+    def __init__(self):
+        self.recording = False
+        self.frames = []
+        self.p = pyaudio.PyAudio()
+        self.stream = None
 
-    frames = []
+    def start_recording(self):
+        if not self.recording:
+            self.recording = True
+            self.frames = []
+            self.stream = self.p.open(format=pyaudio.paInt16,
+                                      channels=2,
+                                      rate=44100,
+                                      input=True,
+                                      frames_per_buffer=1024)
+            print("Recording started...")
+            threading.Thread(target=self._record).start()
 
-    # Dim the recoding so Beans stands out
-    print(colorama.Style.DIM)
-    if pedal:
-        # Set up keyboard listener
-        recording = False
-        def on_press(key):
-            nonlocal recording
-            try:
-                if key.char == 'b' and not recording:
-                    recording = True
-            except AttributeError:
-                pass
+    def stop_recording(self):
+        if self.recording:
+            self.recording = False
+            print("Recording stopped.")
+            self.stream.stop_stream()
+            self.stream.close()
+            self.save_recording()
 
-        def on_release(key):
-            nonlocal recording
-            try:
-                if key.char == 'b' and recording:
-                    recording = False
-                    return False  # Stop listener
-            except AttributeError:
-                pass
+    def _record(self):
+        while self.recording:
+            data = self.stream.read(1024)
+            self.frames.append(data)
 
-        listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-        listener.start()
-
-        # Wait for 'b' key press to start recording
-        print("Press the foot pedal (b key) to start recording...")
-        while not recording:
-            pass
-
-        # Record until 'b' key is released
-        with tqdm(desc='Beans is listening', unit=' chunks') as pbar:
-            while recording:
-                data = stream.read(chunk)
-                frames.append(data)
-                pbar.update(1)
-
-        listener.stop()
-    else:
-        for i in tqdm(range(0, int(rate / chunk * duration)), desc='Beans is listening'):
-            data = stream.read(chunk)
-            frames.append(data)
-    # Remove dim
-    print(colorama.Style.RESET_ALL)
-
-    stream.stop_stream()
-    stream.close()
-    # TODO: not closing pyaudio_instance
-
-    wf = wave.open("recording.wav", 'wb')
-    wf.setnchannels(channels)
-    wf.setsampwidth(pyaudio_instance.get_sample_size(format))
-    wf.setframerate(rate)
-    wf.writeframes(b''.join(frames))
-    wf.close()
-
-def main_audio_loop(pyaudio_instance, model):
-    """
-    Function called during Beans brain loop that allows Beans to hear and speak
-    """
-
-    subprocess.run('cls', shell=True)
-    print(birb)
-    # Call function to record audio, default 5 seconds
-    record_audio(pyaudio_instance=pyaudio_instance)
-    print(colorama.Style.DIM)
-    # STT from OpenAI Whisper
-    convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
-    print(colorama.Style.RESET_ALL)
-
-    if 'beans' in convo or 'beams' in convo or "bean's" in convo:
-        # Process response with Beans GPT
+    def save_recording(self):
+        wf = wave.open("recording.wav", 'wb')
+        wf.setnchannels(2)
+        wf.setsampwidth(self.p.get_sample_size(pyaudio.paInt16))
+        wf.setframerate(44100)
+        wf.writeframes(b''.join(self.frames))
+        wf.close()
+        global model
+        convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
         response = get_response(convo) 
-        # Get Beans to speak the response
+        with open('beans_log','a') as f:
+            try:
+                f.write(f'Response: {response}')
+            except UnicodeEncodeError as uee:
+                f.write(f'Error: {uee}\n')
         speak(response) 
 
-def pedal_loop(pyaudio_instance, model):
-    """
-    Function called during Beans brain loop that allows Beans to hear and speak
-    This one is called if the pedal is active
-    """
+recorder = AudioRecorder()
 
-    subprocess.run('cls', shell=True)
-    print(birb)
-    record_audio(pedal=True,pyaudio_instance=pyaudio_instance)
-    print(colorama.Style.DIM)
-    convo = model.transcribe("recording.wav", verbose=True, language='en', fp16=False)['text'].lower()
-    print(colorama.Style.RESET_ALL)
+def on_press(key):
+    if key == keyboard.Key.ctrl_l or key == keyboard.KeyCode.from_char('b'):
+        recorder.start_recording()
 
-    print(colorama.Style.DIM + convo + colorama.Style.RESET_ALL)
-    response = get_response(convo) 
-    with open('beans_log','a') as f:
-        try:
-            f.write(f'Response: {response}')
-        except UnicodeEncodeError as uee:
-            f.write(f'Error: {uee}\n')
-    speak(response) 
+def on_release(key):
+    if key == keyboard.Key.ctrl_l or key == keyboard.KeyCode.from_char('b'):
+        recorder.stop_recording()
+
+def start_beans():
+    """
+    Starts beans
+    """
+    global model
+    model = whisper.load_model("tiny")
+    # Set up the listener
+    with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+        print("Press and hold 'Ctrl' or 'b' to start recording, release to stop.")
+        listener.join()
 
 def speak(response:str, first_try=True):
     global api_num
@@ -166,19 +114,18 @@ def speak(response:str, first_try=True):
                     f.write(chunk)
         if first_try:
             subprocess.run('cls', shell=True)
-            print(birb_talking)
-            print('             ' + colorama.Fore.MAGENTA + response + colorama.Fore.RESET)
+            print('' + colorama.Fore.MAGENTA + response + colorama.Fore.RESET)
 
         # Playing audio
         words = pygame.mixer.Sound('output.mp3')
         if spotify_controller.sp is not None:
             spotify_controller.change_volume('down')
-        show_image_in_bottom_right(os.path.join('art','bird_open_mouth.png'))
+        # beans_frontend.window.switch_image()
         words.play()
+        # beans_frontend.window.switch_image()
         time.sleep(words.get_length())
         if spotify_controller.sp is not None:
             spotify_controller.change_volume('up')
-        show_image_in_bottom_right(os.path.join('art','bird_closed_mouth.png'))
     except IndexError:
         sys.exit()
     except pygame.error:

@@ -139,14 +139,11 @@ def process_convo(convo):
     if 'exit' in keywords_found and ('assistant' in keywords_found or 'system' in keywords_found):
         sys.exit()
 
-    print(colorama.Style.DIM)
-    print(f'Prompt: {convo} {tag}')
     with open('beans_log','a') as f:
         try:
             f.write(f'\n{datetime.now()}\nPrompt: {convo} {tag}\n')
         except UnicodeEncodeError as uee:
             f.write(f'\n{datetime.now()}\nError: {uee}\n')
-    print(colorama.Style.RESET_ALL)
     return f'{convo} {tag}'
 
 # Driver to send and receive calls to the GPT API

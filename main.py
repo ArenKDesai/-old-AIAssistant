@@ -1,12 +1,10 @@
-# import pygame
-import os
-from audio import main_audio_loop, pedal_loop
+from audio import start_beans
 import colorama
-from beans_frontend import *
-import sys
-import pyaudio
-import whisper
 colorama.init()
+import thread
+def front():
+    import beans_frontend
+thread.Thread(front)
 
 if __name__ == "__main__":
     """
@@ -31,18 +29,4 @@ if __name__ == "__main__":
         SPOTIPY_CLIENT_SECRET = '{Your Spotipy client secret, optional but may crash}'
         SPOTIPY_REDIRECT_URI = 'http://localhost:8888/callback' or whatever else you want to specify
     """
-    pedal = True
-    for arg in sys.argv:
-        if '--nopedal' in arg:
-            pedal = False
-    pyaudio_instance = pyaudio.PyAudio()
-    model = whisper.load_model("tiny")
-
-    # Main loop
-    # This mainly is for TTS and STT, but more functions can be added
-    show_image_in_bottom_right(os.path.join('art','bird_closed_mouth.png'))
-    while True:
-        if pedal:
-            pedal_loop(pyaudio_instance=pyaudio_instance, model=model)
-        else:
-            main_audio_loop(pyaudio_instance=pyaudio_instance, model=model)
+    start_beans()

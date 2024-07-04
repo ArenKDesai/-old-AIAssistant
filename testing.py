@@ -1,16 +1,13 @@
 import sys
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPixmap
-import threading
 from PyQt5.QtWidgets import QMainWindow, QApplication, QLabel, QVBoxLayout, QWidget
-image_paths = []
 
 class ResizableImageWindow(QMainWindow):
-    def __init__(self, image_paths):
+    def __init__(self):
         super().__init__()
         self.image_paths = ['art/bird_closed_mouth.png', 'art/bird_open_mouth.png']
         self.current_image_index = 0
-        self.image_paths = image_paths
         self.initUI()
 
     def initUI(self):
@@ -30,6 +27,10 @@ class ResizableImageWindow(QMainWindow):
         self.setMinimumSize(100, 100)
         self.resize(self.pixmap.width(), self.pixmap.height())
 
+        # Set up a timer to switch images every 1000 ms (1 second)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.switch_image)
+        self.timer.start(1000)
 
     def resizeEvent(self, event):
         self.label.setPixmap(self.pixmap.scaled(
@@ -46,12 +47,7 @@ class ResizableImageWindow(QMainWindow):
             Qt.KeepAspectRatio, Qt.SmoothTransformation
         ))
 
-def HelloBeans(image_paths):
-    app = QApplication(sys.argv)
-    window = ResizableImageWindow(image_paths)
-    window.show()
-
-image_thread = threading.Thread(target=HelloBeans, args=(image_paths,))
-image_thread.start()
-
-# sys.exit(app.exec_())
+app = QApplication(sys.argv)
+window = ResizableImageWindow()
+window.show()
+sys.exit(app.exec_())
