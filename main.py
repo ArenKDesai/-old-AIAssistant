@@ -1,10 +1,8 @@
 from audio import start_beans
 import colorama
 colorama.init()
-import thread
-def front():
-    import beans_frontend
-thread.Thread(front)
+import threading
+import beans_frontend
 
 if __name__ == "__main__":
     """
@@ -29,4 +27,14 @@ if __name__ == "__main__":
         SPOTIPY_CLIENT_SECRET = '{Your Spotipy client secret, optional but may crash}'
         SPOTIPY_REDIRECT_URI = 'http://localhost:8888/callback' or whatever else you want to specify
     """
-    start_beans()
+    # Create a thread with the target function
+    beans_thread = threading.Thread(target=start_beans)
+    
+    # Start the thread
+    beans_thread.start()
+    
+    # Now call see_beans() in the main thread
+    beans_frontend.see_beans()
+
+    # Optionally, wait for the beans_thread to finish
+    # beans_thread.join()

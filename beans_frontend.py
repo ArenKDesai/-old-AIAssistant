@@ -4,6 +4,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QApplication, QLabel, QVBoxLayout, QWidget
 from PyQt5.QtWidgets import QSizeGrip
 from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QFileSystemWatcher
 
 class ResizableImageWindow(QMainWindow):
     def __init__(self):
@@ -13,22 +14,13 @@ class ResizableImageWindow(QMainWindow):
         self.initUI()
         self.setWindowFlags(Qt.FramelessWindowHint)
 
-    # def initUI(self):
-    #     self.central_widget = QWidget()
-    #     self.setCentralWidget(self.central_widget)
+            # Set up file watcher
+        self.watcher = QFileSystemWatcher(self)
+        self.watcher.addPath('beans_ear')  # Path to your file
+        self.watcher.fileChanged.connect(self.on_file_changed)
         
-    #     layout = QVBoxLayout(self.central_widget)
-        
-    #     self.label = QLabel()
-    #     self.pixmap = QPixmap(self.image_paths[self.current_image_index])
-    #     self.label.setPixmap(self.pixmap)
-    #     self.label.setScaledContents(True)
-        
-    #     layout.addWidget(self.label)
-        
-    #     self.setAttribute(Qt.WA_TranslucentBackground, True)
-    #     self.setMinimumSize(100, 100)
-    #     self.resize(self.pixmap.width(), self.pixmap.height())
+        # Read initial file state
+        self.last_file_state = self.read_beans_ear()
 
     def initUI(self):
         self.central_widget = QWidget()
@@ -50,6 +42,20 @@ class ResizableImageWindow(QMainWindow):
         self.setMinimumSize(100, 100)
         self.resize(self.pixmap.width(), self.pixmap.height())
 
+    def read_beans_ear(self):
+        try:
+            with open('beans_ear', 'r') as file:
+                return file.read().strip().lower() == 'true'
+        except FileNotFoundError:
+            print("File 'beans_ear' not found.")
+            return False
+
+    def on_file_changed(self):
+        new_state = self.read_beans_ear()
+        if new_state != self.last_file_state:
+            self.switch_image()
+            self.last_file_state = new_state
+
     def resizeEvent(self, event):
         self.label.setPixmap(self.pixmap.scaled(
             self.width(), self.height(), 
@@ -59,6 +65,9 @@ class ResizableImageWindow(QMainWindow):
 
     def switch_image(self):
         self.current_image_index = (self.current_image_index + 1) % len(self.image_paths)
+        self.update_image()
+
+    def update_image(self):
         self.pixmap = QPixmap(self.image_paths[self.current_image_index])
         self.label.setPixmap(self.pixmap.scaled(
             self.width(), self.height(),
@@ -75,7 +84,8 @@ class ResizableImageWindow(QMainWindow):
             self.move(event.globalPos() - self.drag_position)
             event.accept()
 
-app = QApplication(sys.argv)
-window = ResizableImageWindow()
-window.show()
-sys.exit(app.exec_())
+def see_beans():
+    app = QApplication(sys.argv)
+    window = ResizableImageWindow()
+    window.show()
+    sys.exit(app.exec_())

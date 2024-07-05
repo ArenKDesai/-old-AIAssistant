@@ -12,11 +12,21 @@ import spotify_controller
 import subprocess
 import colorama
 import threading
+from queue import Queue
 from pynput import keyboard
 pygame.init() 
 
 # os.environ["FFMPEG_BINARY"] = r"C:\ffmpeg\bin\ffmpeg.exe"
 api_num = 0
+beans_status = Queue()
+
+def is_beans_talking(answer:str):
+    if answer == 'yes':
+        with open('beans_ear','w') as f:
+            f.write('True')
+    else:
+        with open('beans_ear','w') as f:
+            f.write('False')
 
 class AudioRecorder:
     def __init__(self):
@@ -120,9 +130,11 @@ def speak(response:str, first_try=True):
         words = pygame.mixer.Sound('output.mp3')
         if spotify_controller.sp is not None:
             spotify_controller.change_volume('down')
-        # beans_frontend.window.switch_image()
+
+        is_beans_talking('yes')
         words.play()
-        # beans_frontend.window.switch_image()
+        is_beans_talking('no')
+
         time.sleep(words.get_length())
         if spotify_controller.sp is not None:
             spotify_controller.change_volume('up')
