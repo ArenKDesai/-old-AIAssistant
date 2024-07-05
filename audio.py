@@ -20,8 +20,8 @@ pygame.init()
 api_num = 0
 beans_status = Queue()
 
-def is_beans_talking(answer:str):
-    if answer == 'yes':
+def is_beans_talking(answer):
+    if answer:
         with open('beans_ear','w') as f:
             f.write('True')
     else:
@@ -131,11 +131,11 @@ def speak(response:str, first_try=True):
         if spotify_controller.sp is not None:
             spotify_controller.change_volume('down')
 
-        is_beans_talking('yes')
+        is_beans_talking(answer='YES')
         words.play()
-        is_beans_talking('no')
-
         time.sleep(words.get_length())
+        is_beans_talking(answer=None)
+
         if spotify_controller.sp is not None:
             spotify_controller.change_volume('up')
     except IndexError:

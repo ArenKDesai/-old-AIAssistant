@@ -11,16 +11,22 @@ class ResizableImageWindow(QMainWindow):
         super().__init__()
         self.image_paths = ['art/bird_closed_mouth.png', 'art/bird_open_mouth.png']
         self.current_image_index = 0
+        self.last_file_state = False
         self.initUI()
         self.setWindowFlags(Qt.FramelessWindowHint)
-
-            # Set up file watcher
-        self.watcher = QFileSystemWatcher(self)
-        self.watcher.addPath('beans_ear')  # Path to your file
-        self.watcher.fileChanged.connect(self.on_file_changed)
         
-        # Read initial file state
-        self.last_file_state = self.read_beans_ear()
+        # Set up file watcher
+        self.watcher = QFileSystemWatcher(self)
+        self.watcher.addPath('beans_ear')
+        self.watcher.fileChanged.connect(self.check_file)
+        
+        # Set up periodic timer
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.check_file)
+        self.timer.start(100)  # Check every 100 ms
+        
+        # Initial check
+        self.check_file()
 
     def initUI(self):
         self.central_widget = QWidget()
@@ -37,8 +43,8 @@ class ResizableImageWindow(QMainWindow):
         # Add size grip for resizing
         size_grip = QSizeGrip(self)
         layout.addWidget(size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
-        self.setAttribute(Qt.WA_TranslucentBackground, True)
 
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setMinimumSize(100, 100)
         self.resize(self.pixmap.width(), self.pixmap.height())
 
@@ -50,34 +56,31 @@ class ResizableImageWindow(QMainWindow):
             print("File 'beans_ear' not found.")
             return False
 
-    def on_file_changed(self):
+    def check_file(self):
         new_state = self.read_beans_ear()
         if new_state != self.last_file_state:
-            self.switch_image()
-            self.last_file_state = new_state
+            self.switch_image(new_state)
+        self.last_file_state = new_state
 
-    def resizeEvent(self, event):
-        self.label.setPixmap(self.pixmap.scaled(
-            self.width(), self.height(), 
-            Qt.KeepAspectRatio, Qt.SmoothTransformation
-        ))
-        super().resizeEvent(event)
-
-    def switch_image(self):
-        self.current_image_index = (self.current_image_index + 1) % len(self.image_paths)
-        self.update_image()
-
-    def update_image(self):
+    def switch_image(self, state):
+        self.current_image_index = 1 if state else 0
         self.pixmap = QPixmap(self.image_paths[self.current_image_index])
         self.label.setPixmap(self.pixmap.scaled(
             self.width(), self.height(),
             Qt.KeepAspectRatio, Qt.SmoothTransformation
         ))
 
+    def resizeEvent(self, event):
+        self.label.setPixmap(self.pixmap.scaled(
+            self.width(), self.height(),
+            Qt.KeepAspectRatio, Qt.SmoothTransformation
+        ))
+        super().resizeEvent(event)
+
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.drag_position = event.globalPos() - self.frameGeometry().topLeft()
-        event.accept()
+            event.accept()
 
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton:
